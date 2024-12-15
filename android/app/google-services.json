@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "573915051771",
+    "project_id": "cypherwolf-9e924",
+    "storage_bucket": "cypherwolf-9e924.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:573915051771:android:9f6189b958d0d80f48625e",
+        "android_client_info": {
+          "package_name": "com.example.example_shameer"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDsXnAo77jePTUDFcRZB0fWFZKmPFFi_q8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
