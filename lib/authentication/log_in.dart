@@ -1,8 +1,8 @@
 import 'dart:developer';
 
-import 'package:example_shameer/authentication/dashboard.dart';
-import 'package:example_shameer/location_ip.dart';
-import 'package:example_shameer/utilities.dart';
+import 'package:example_shameer/screens/dashboard.dart';
+import 'package:example_shameer/utilities/location_ip.dart';
+import 'package:example_shameer/utilities/utilities.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -80,13 +80,26 @@ class _LogInState extends State<LogIn> {
       verificationId: _verificationId,
       smsCode: otpCode,
     );
-
+    DateTime lastLogin = DateTime.now();
+    final location = await _li.getLocationDetails();
+    final String ip = await _li.ipAdreess(context);
+    log('City: ${location['city']}, State: ${location['state']}');
+    log('The IP Address is : $ip');
     try {
       await _firebase.signInWithCredential(credential);
       log('Phone number verified with OTP: $otpCode');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Phone number verified successfully!")),
       );
+      Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => Dashboard(
+                lastLogin: lastLogin,
+                mobile: _phoneController.text,
+                location: "${location['city']},${location['state']}",
+                ip: ip),
+          ));
     } catch (e) {
       log('Error: $e');
       ScaffoldMessenger.of(context).showSnackBar(
@@ -100,93 +113,103 @@ class _LogInState extends State<LogIn> {
     final height = MediaQuery.of(context).size.height;
     final width = MediaQuery.of(context).size.width;
     return SafeArea(
-      child: Scaffold(
-        backgroundColor: _u.primary,
-        appBar: AppBar(
+      child: PopScope(
+        canPop: false,
+        child: Scaffold(
           backgroundColor: _u.primary,
-          actions: [
-            TextButton(
-                onPressed: () async {
-                  DateTime lastLogin = DateTime.now();
-                  final location = await _li.getLocationDetails();
-                  final String ip = await _li.ipAdreess(context);
-                  log('City: ${location['city']}, State: ${location['state']}');
-                  log('The IP Address is : $ip');
-
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => Dashboard(
-                          lastLogin: lastLogin,
-                        ),
-                      ));
-                },
-                child: Text('LogIn'))
-          ],
-        ),
-        body: Container(
-          height: height,
-          width: width,
-          decoration: BoxDecoration(
-            color: Colors.black,
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(20.r),
-              topRight: Radius.circular(20.r),
-            ),
-          ),
-          child: Center(
-            child: SizedBox(
-              height: height * 0.5,
-              width: width * 0.8,
-              child: Card(
-                color: _u.black,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: EdgeInsets.only(bottom: 10.h),
-                      child: Text(
-                        "Phone Number",
-                        style: _u.customTextStyle(),
-                      ),
-                    ),
-                    _u.customTextField(_phoneController),
-                    Padding(
-                      padding: EdgeInsets.only(top: 30.h, bottom: 10.h),
-                      child: Text(
-                        "OTP [One Time Password]",
-                        style: _u.customTextStyle(),
-                      ),
-                    ),
-                    _u.customTextField(_otpController),
-                    Padding(
-                      padding: EdgeInsets.only(top: 30.h, bottom: 10.h),
-                      child: Center(
-                        child: ElevatedButton(
-                          onPressed: () {
-                            _verifyPhone();
-                          },
-                          style: _u.customButtonStyle(),
-                          child: Text("SEND OTP"),
-                        ),
-                      ),
-                    ),
-                    otpSent
-                        ? Padding(
-                            padding: EdgeInsets.only(top: 10.h, bottom: 10.h),
-                            child: Center(
-                              child: ElevatedButton(
-                                onPressed: () {
-                                  _verifyOTP();
-                                },
-                                style: _u.customButtonStyle(),
-                                child: Text("LOGIN"),
+          appBar: AppBar(
+            automaticallyImplyLeading: false,
+            backgroundColor: _u.primary,
+            actions: [
+              TextButton(
+                  onPressed: () async {
+                    DateTime lastLogin = DateTime.now();
+                    final location = await _li.getLocationDetails();
+                    final String ip = await _li.ipAdreess(context);
+                    log('City: ${location['city']}, State: ${location['state']}');
+                    log('The IP Address is : $ip');
+                    _phoneController.text.isEmpty
+                        ? ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                            content: Text("Enter valid mobile number")))
+                        : Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => Dashboard(
+                                lastLogin: lastLogin,
+                                mobile: _phoneController.text,
+                                ip: ip,
+                                location:
+                                    "${location['city']},${location['state']}",
                               ),
-                            ),
-                          )
-                        : SizedBox(),
-                  ],
+                            ));
+                  },
+                  child: Text('LogIn'))
+            ],
+          ),
+          body: Container(
+            height: height,
+            width: width,
+            decoration: BoxDecoration(
+              color: Colors.black,
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(20.r),
+                topRight: Radius.circular(20.r),
+              ),
+            ),
+            child: Center(
+              child: SizedBox(
+                height: height * 0.5,
+                width: width * 0.8,
+                child: Card(
+                  color: _u.black,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: EdgeInsets.only(bottom: 10.h),
+                        child: Text(
+                          "Phone Number",
+                          style: _u.customTextStyle(),
+                        ),
+                      ),
+                      _u.customTextField(_phoneController),
+                      Padding(
+                        padding: EdgeInsets.only(top: 30.h, bottom: 10.h),
+                        child: Text(
+                          "OTP [One Time Password]",
+                          style: _u.customTextStyle(),
+                        ),
+                      ),
+                      _u.customTextField(_otpController),
+                      Padding(
+                        padding: EdgeInsets.only(top: 30.h, bottom: 10.h),
+                        child: Center(
+                          child: ElevatedButton(
+                            onPressed: () {
+                              _verifyPhone();
+                            },
+                            style: _u.customButtonStyle(),
+                            child: Text("SEND OTP"),
+                          ),
+                        ),
+                      ),
+                      otpSent
+                          ? Padding(
+                              padding: EdgeInsets.only(top: 10.h, bottom: 10.h),
+                              child: Center(
+                                child: ElevatedButton(
+                                  onPressed: () {
+                                    _verifyOTP();
+                                  },
+                                  style: _u.customButtonStyle(),
+                                  child: Text("LOGIN"),
+                                ),
+                              ),
+                            )
+                          : SizedBox(),
+                    ],
+                  ),
                 ),
               ),
             ),
